@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TaskFlow WS Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+<h2>TaskFlow WebSocket Test</h2>
+<div>
+    <label>JWT: <input id="token" size="80" placeholder="Вставь сюда токен из /api/auth/login"></label>
+    <label>ProjectId: <input id="projectId" type="number" value="1"></label>
+    <button onclick="connect()">Connect</button>
+</div>
+<h3>События:</h3>
+<pre id="log" style="background:#f4f4f4;padding:10px;max-height:400px;overflow:auto;"></pre>
+
+<script>
+    let client = null;
+
+    function log(msg) {
+        const el = document.getElementById('log');
+        el.textContent = new Date().toLocaleTimeString() + ' | ' + msg + '\n' + el.textContent;
+    }
+
+    function connect() {
+        const token = document.getElementById('token').value.trim();
+        const projectId = document.getElementById('projectId').value.trim();
+
+        client = new StompJs.Client({
+            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+            connectHeaders: { Authorization: 'Bearer ' + token },
+            onConnect: () => {
+                log('Connected');
+                client.subscribe('/topic/projects/' + projectId, (msg) => {
+                    log('Event: ' + msg.body);
+                });
+            },
+            onStompError: (frame) => log('STOMP error: ' + frame.headers['message']),
+            onWebSocketError: (err) => log('WS error: ' + err)
+        });
+        client.activate();
+    }
+</script>
+</body>
+</html>

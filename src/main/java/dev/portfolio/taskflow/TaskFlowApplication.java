@@ -2,12 +2,12 @@ package dev.portfolio.taskflow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-public class TaskflowApplication {
-
+@EnableScheduling
+public class TaskFlowApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(TaskflowApplication.class, args);
+		SpringApplication.run(TaskFlowApplication.class, args);
 	}
-
 }

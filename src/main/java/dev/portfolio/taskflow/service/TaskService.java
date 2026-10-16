@@ -1,5 +1,6 @@
 package dev.portfolio.taskflow.service;
 
+import dev.portfolio.taskflow.dto.event.TaskEvent;
 import dev.portfolio.taskflow.dto.request.TaskCreateRequest;
 import dev.portfolio.taskflow.dto.request.TaskUpdateRequest;
 import dev.portfolio.taskflow.dto.response.PageResponse;
@@ -32,6 +33,7 @@ public class TaskService {
     private final TaskMapper taskMapper;
     private final ProjectAccessService accessService;
     private final TaskHistoryRecorder historyRecorder;
+    private final TaskEventPublisher eventPublisher;
 
     @Transactional
     public TaskResponse create(Long projectId, TaskCreateRequest request) {
@@ -59,6 +61,14 @@ public class TaskService {
         }
 
         taskRepository.save(task);
+
+        eventPublisher.publish(projectId, TaskEvent.of(
+                TaskEvent.EventType.TASK_CREATED,
+                projectId, task.getId(),
+                null, null, task.getTitle(),
+                current.getUsername()
+        ));
+
         return taskMapper.toResponse(task);
     }
 
@@ -84,6 +94,18 @@ public class TaskService {
         Task task = getTaskOrThrow(taskId);
         ProjectMember member = accessService.requireMembership(task.getProject().getId());
         User current = member.getUser();
+        Long projectId = task.getProject().getId();
+
+        if (request.status() != null && request.status() != task.getStatus()) {
+            historyRecorder.record(task, current, "status", task.getStatus(), request.status());
+            eventPublisher.publish(projectId, TaskEvent.of(
+                    TaskEvent.EventType.TASK_UPDATED,
+                    projectId, taskId, "status",
+                    task.getStatus(), request.status(),
+                    current.getUsername()
+            ));
+            task.setStatus(request.status());
+        }
 
         if (request.title() != null) {
             historyRecorder.record(task, current, "title", task.getTitle(), request.title());
@@ -94,11 +116,6 @@ public class TaskService {
             historyRecorder.record(task, current, "description",
                     task.getDescription(), request.description());
             task.setDescription(request.description());
-        }
-
-        if (request.status() != null && request.status() != task.getStatus()) {
-            historyRecorder.record(task, current, "status", task.getStatus(), request.status());
-            task.setStatus(request.status());
         }
 
         if (request.priority() != null && request.priority() != task.getPriority()) {

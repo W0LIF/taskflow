@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface TaskRepository extends JpaRepository<Task, Long> {
+import java.time.LocalDateTime;
+import java.util.List;
 
+public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("""
         SELECT t FROM Task t
         WHERE t.project.id = :projectId
@@ -20,4 +22,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                @Param("status") TaskStatus status,
                                @Param("assigneeId") Long assigneeId,
                                Pageable pageable);
+
+    @Query("""
+    SELECT t FROM Task t
+    WHERE t.status <> dev.portfolio.taskflow.enums.TaskStatus.DONE
+      AND t.dueDate IS NOT NULL
+      AND t.dueDate BETWEEN :from AND :to
+      AND t.assignee IS NOT NULL
+    """)
+    List<Task> findTasksWithUpcomingDeadline(@Param("from") LocalDateTime from,
+                                             @Param("to") LocalDateTime to);
 }

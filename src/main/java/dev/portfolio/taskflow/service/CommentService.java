@@ -1,5 +1,6 @@
 package dev.portfolio.taskflow.service;
 
+import dev.portfolio.taskflow.dto.event.TaskEvent;
 import dev.portfolio.taskflow.dto.request.CommentCreateRequest;
 import dev.portfolio.taskflow.dto.response.CommentResponse;
 import dev.portfolio.taskflow.exception.AccessDeniedException;
@@ -12,6 +13,7 @@ import dev.portfolio.taskflow.repository.CommentRepository;
 import dev.portfolio.taskflow.repository.TaskRepository;
 import dev.portfolio.taskflow.security.ProjectAccessService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,9 @@ public class CommentService {
     private final TaskRepository taskRepository;
     private final CommentMapper commentMapper;
     private final ProjectAccessService accessService;
+    private final TaskEventPublisher eventPublisher;
+
+    private final DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     @Transactional
     public CommentResponse create(Long taskId, CommentCreateRequest request) {
@@ -32,12 +37,18 @@ public class CommentService {
         User current = accessService.requireMembership(task.getProject().getId()).getUser();
 
         Comment comment = Comment.builder()
-                .task(task)
-                .author(current)
-                .content(request.content())
+                .task(task).author(current).content(request.content())
                 .build();
+        commentRepository.save(comment);
 
-        return commentMapper.toResponse(commentRepository.save(comment));
+        eventPublisher.publish(task.getProject().getId(), TaskEvent.of(
+                TaskEvent.EventType.COMMENT_ADDED,
+                task.getProject().getId(), taskId,
+                "comment", null, comment.getId(),
+                current.getUsername()
+        ));
+
+        return commentMapper.toResponse(comment);
     }
 
     @Transactional(readOnly = true)
