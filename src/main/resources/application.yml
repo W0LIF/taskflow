@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: TaskFlow
+  datasource:
+    url: jdbc:postgresql://localhost:5434/taskflow_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: ${JWT_SECRET:yourSuperSecretKeyThatIsAtLeast32CharactersLongForHS256}
+  expiration: 86400000
+  refresh-expiration: 604800000
