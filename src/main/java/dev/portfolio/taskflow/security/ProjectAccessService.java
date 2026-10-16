@@ -65,4 +65,13 @@ public class ProjectAccessService {
         }
         return member;
     }
+
+    public void requireMembershipForUser(Long projectId, Long userId) {
+        Project project = getProjectOrThrow(projectId);
+        if (project.getOwner().getId().equals(userId)) return;
+        if (!projectMemberRepository.existsByProjectIdAndUserId(projectId, userId)) {
+            throw new dev.portfolio.taskflow.exception.BusinessException(
+                    "User " + userId + " is not a member of project " + projectId);
+        }
+    }
 }
