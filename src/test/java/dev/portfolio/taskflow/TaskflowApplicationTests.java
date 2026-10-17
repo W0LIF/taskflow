@@ -1,10 +1,9 @@
 package dev.portfolio.taskflow;
 
+import dev.portfolio.taskflow.support.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class TaskflowApplicationTests {
+class TaskflowApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {

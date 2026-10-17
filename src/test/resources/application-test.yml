@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+
+jwt:
+  secret: testSecretKeyForTaskFlowTestsThatIsAtLeast32BytesLong!!
+  expiration: 3600000

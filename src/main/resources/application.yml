@@ -18,6 +18,14 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
 jwt:
   secret: ${JWT_SECRET:yourSuperSecretKeyThatIsAtLeast32CharactersLongForHS256}
   expiration: 86400000
